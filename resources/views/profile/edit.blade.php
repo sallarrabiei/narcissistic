@@ -9,6 +9,7 @@
                     {{ session('success') }}
                 </div>
             @endif
+
             <div class="card">
                 <div class="card-header">Update Profile</div>
 
@@ -18,7 +19,7 @@
 
                         <div class="form-group">
                             <label for="name">Name</label>
-                            <input id="name" type="text" class="form-control @error('name') is-invalid @enderror" name="name" value="{{ old('name', $user->name) }}" required autocomplete="name" autofocus>
+                            <input id="name" type="text" class="form-control @error('name') is-invalid @enderror" name="name" value="{{ old('name', $user->name) }}" required>
 
                             @error('name')
                                 <span class="invalid-feedback" role="alert">
@@ -29,7 +30,7 @@
 
                         <div class="form-group">
                             <label for="last_name">Last Name</label>
-                            <input id="last_name" type="text" class="form-control @error('last_name') is-invalid @enderror" name="last_name" value="{{ old('last_name', $user->last_name) }}" required autocomplete="last_name">
+                            <input id="last_name" type="text" class="form-control @error('last_name') is-invalid @enderror" name="last_name" value="{{ old('last_name', $user->last_name) }}" required>
 
                             @error('last_name')
                                 <span class="invalid-feedback" role="alert">
@@ -40,7 +41,7 @@
 
                         <div class="form-group">
                             <label for="email">Email</label>
-                            <input id="email" type="email" class="form-control @error('email') is-invalid @enderror" name="email" value="{{ old('email', $user->email) }}" required autocomplete="email">
+                            <input id="email" type="email" class="form-control @error('email') is-invalid @enderror" name="email" value="{{ old('email', $user->email) }}" required>
 
                             @error('email')
                                 <span class="invalid-feedback" role="alert">
@@ -66,11 +67,23 @@
                         </div>
 
                         <div class="form-group mb-0">
-                            <button type="submit" class="btn btn-primary">
-                                Update Profile
-                            </button>
+                            <button type="submit" class="btn btn-primary">Update Profile</button>
                         </div>
                     </form>
+                </div>
+            </div>
+
+            <div class="card mt-4">
+                <div class="card-header">Survey Results</div>
+
+                <div class="card-body">
+                    <ul class="list-group">
+                        @foreach ($results as $result)
+                            <li class="list-group-item">
+                                <strong>{{ $result->survey->title }}</strong>: {{ $result->score }}
+                            </li>
+                        @endforeach
+                    </ul>
                 </div>
             </div>
         </div>

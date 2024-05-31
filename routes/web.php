@@ -6,6 +6,7 @@ use App\Http\Controllers\SuperAdminController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\SurveyController;
 
 /*
 |--------------------------------------------------------------------------
@@ -31,6 +32,13 @@ Route::middleware(['auth'])->group(function () {
 
     Route::middleware(['checkUserType:1'])->group(function () {
         Route::get('/superadmin', [SuperAdminController::class, 'index'])->name('superadmin');
+        Route::get('/superadmin/surveys', [SurveyController::class, 'index'])->name('surveys.index');
+        Route::get('/superadmin/surveys/create', [SurveyController::class, 'create'])->name('surveys.create');
+        Route::post('/superadmin/surveys', [SurveyController::class, 'store'])->name('surveys.store');
+        Route::get('/superadmin/surveys/{survey}', [SurveyController::class, 'show'])->name('surveys.show');
+        Route::get('/superadmin/surveys/{survey}/questions/create', [SurveyController::class, 'createQuestion'])->name('surveys.questions.create');
+        Route::post('/superadmin/surveys/{survey}/questions', [SurveyController::class, 'storeQuestion'])->name('surveys.questions.store');
+
     });
 
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');

@@ -10,7 +10,11 @@ class ProfileController extends Controller
 {
     public function edit()
     {
-        return view('profile.edit', ['user' => Auth::user()]);
+        $user = Auth::user();
+        $results = Result::where('user_id', $user->id)->with('survey')->get();
+        return view('profile.edit', compact('user', 'results'));
+
+        // return view('profile.edit', ['user' => Auth::user()]);
     }
 
     public function update(Request $request)
@@ -36,5 +40,6 @@ class ProfileController extends Controller
 
         return redirect()->route('profile.edit')->with('success', 'Profile updated successfully.');
     }
+
 }
 
