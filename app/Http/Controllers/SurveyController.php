@@ -9,6 +9,7 @@ use App\Models\Option;
 use App\Models\OptionType;
 use App\Models\Category;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Auth;
 
 class SurveyController extends Controller
 {
@@ -33,6 +34,8 @@ class SurveyController extends Controller
             'slug' => 'nullable|string|unique:surveys,slug',
             'categories' => 'array',
             'categories.*' => 'exists:categories,id',
+            'price' => 'nullable|numeric',
+
         ]);
 
         $data = $request->all();
@@ -48,6 +51,13 @@ class SurveyController extends Controller
 
     public function show(Survey $survey)
     {
+        if ($survey->price && !Auth::user()->isSuperAdmin()) {
+            // Check if the user has paid for the survey
+            if (!Auth::user() || !Auth::user()->hasPaidForSurvey($survey)) {
+                return redirect()->route('payment.show', $survey->id)->with('error', 'You need to pay to access this survey.');
+            }
+        }
+
         return view('surveys.show', compact('survey'));
     }
 
@@ -66,6 +76,8 @@ class SurveyController extends Controller
             'slug' => 'required|string|unique:surveys,slug,' . $survey->id,
             'categories' => 'array',
             'categories.*' => 'exists:categories,id',
+            'price' => 'nullable|numeric',
+
         ]);
 
         $data = $request->all();
@@ -131,6 +143,16 @@ class SurveyController extends Controller
                 ['label' => 'Quite a bit like me', 'value' => 5],
                 ['label' => 'Very much like me', 'value' => 6],
             ];
+        } elseif ($question->optionType->name === 'Agree or Disagree') {
+            $options = [
+                ['label' => 'Agree', 'value' => 1],
+                ['label' => 'Disagree', 'value' => 2],
+            ];
+        } elseif ($question->optionType->name === 'Yes or No') {
+            $options = [
+                ['label' => 'Yes', 'value' => 1],
+                ['label' => 'No', 'value' => 2],
+            ];
         }
 
         foreach ($options as $option) {
@@ -141,5 +163,71 @@ class SurveyController extends Controller
                 'value' => $option['value'],
             ]);
         }
+    }
+    public function showPublic($slug)
+    {
+        $survey = Survey::where('slug', $slug)->firstOrFail();
+
+        if ($survey->price > 0 && (!Auth::check() || !Auth::user()->isSuperAdmin())) {
+            // Check if the user has paid for the survey
+            if (!Auth::check() || !Auth::user()->hasPaidForSurvey($survey)) {
+                return redirect()->route('payment.show', $survey->id)->with('error', 'You need to pay to access this survey.');
+            }
+        }
+
+        $questions = $survey->questions()->with('options')->get();
+
+        return view('surveys.public_show', compact('survey', 'questions'));
+    }
+    public function startSurvey($slug)
+    {
+        $survey = Survey::where('slug', $slug)->firstOrFail();
+        return view('surveys.public_show', compact('survey'));
+    }
+
+    public function showQuestion(Request $request, $slug)
+    {
+        $survey = Survey::where('slug', $slug)->firstOrFail();
+        $questionId = $request->input('question_id');
+        $questionIndex = $request->input('question_index');
+        $direction = $request->input('direction');
+
+        $questions = $survey->questions()->get();
+        $currentIndex = $questions->search(function ($question) use ($questionId) {
+            return $question->id == $questionId;
+        });
+
+        if ($direction == 'start') {
+            $currentIndex = 0;
+        } else if ($direction == 'next') {
+            $currentIndex++;
+        } else if ($direction == 'prev') {
+            $currentIndex--;
+        }
+
+        if ($currentIndex < 0) {
+            $currentIndex = 0;
+        } else if ($currentIndex >= count($questions)) {
+            $currentIndex = count($questions) - 1;
+        }
+
+        $currentQuestion = $questions[$currentIndex];
+        return view('surveys.public_show', compact('survey', 'currentQuestion', 'currentIndex'));
+    }
+
+    public function submitSurvey(Request $request, $slug)
+    {
+        $survey = Survey::where('slug', $slug)->firstOrFail();
+        $responses = $request->input('responses', []);
+
+        $score = 0;
+        foreach ($responses as $questionId => $value) {
+            $score += (int) $value;
+        }
+
+        // Save the result to the database if needed
+        // Example: SurveyResult::create([...]);
+
+        return view('surveys.public_result', compact('survey', 'score'));
     }
 }

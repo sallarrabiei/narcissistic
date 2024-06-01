@@ -10,8 +10,10 @@ class OptionTypesTableSeeder extends Seeder
     public function run()
     {
         $optionTypes = [
-            'Not at all TO Very Much (0-5 score)',
-            'Not at all TO Very Much (1-6 score)',
+            ['name' => 'Not at all TO Very Much (0-5 score)'],
+            ['name' => 'Not at all TO Very Much (1-6 score)'],
+            ['name' => 'Agree or Disagree'],
+            ['name' => 'Yes or No'],
         ];
 
         foreach ($optionTypes as $type) {

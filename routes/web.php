@@ -11,6 +11,7 @@ use App\Http\Controllers\QuestionController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\PageController;
 use App\Http\Controllers\CommentController;
+use App\Http\Controllers\PaymentController;
 
 /*
 |--------------------------------------------------------------------------
@@ -89,6 +90,19 @@ Route::middleware(['auth'])->group(function () {
 // Public route to view a page
 Route::get('/pages/{slug}', [PageController::class, 'show'])->name('pages.show');
 Route::post('/pages/{slug}/comments', [PageController::class, 'storeComment'])->name('comments.store');
+
+// Public Route for payment
+Route::post('/payment/paypal/{survey}', [PayPalController::class, 'payWithPayPal'])->name('paypal.pay');
+Route::get('/payment/paypal/status/{survey}', [PayPalController::class, 'getPaymentStatus'])->name('paypal.status');
+Route::get('/payment/paypal/cancel', function() {
+    return redirect()->route('surveys.index')->with('error', 'Payment was cancelled.');
+})->name('paypal.cancel');
+
+// Public route to view a survey
+Route::get('/surveys/{slug}', [SurveyController::class, 'startSurvey'])->name('surveys.public.start');
+Route::post('/surveys/{slug}/question', [SurveyController::class, 'showQuestion'])->name('surveys.public.question');
+Route::post('/surveys/{slug}/submit', [SurveyController::class, 'submitSurvey'])->name('surveys.submit');
+
 
 Auth::routes();
 

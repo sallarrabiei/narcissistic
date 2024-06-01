@@ -66,6 +66,16 @@
                                 </span>
                             @enderror
                         </div>
+                        <div class="form-group">
+                            <label for="price">Price</label>
+                            <input id="price" type="number" step="0.01" class="form-control @error('price') is-invalid @enderror" name="price" value="{{ old('price') }}">
+
+                            @error('price')
+                                <span class="invalid-feedback" role="alert">
+                                    <strong>{{ $message }}</strong>
+                                </span>
+                            @enderror
+                        </div>
 
                         <button type="submit" class="btn btn-primary">Create Survey</button>
                     </form>

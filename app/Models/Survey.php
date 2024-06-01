@@ -9,7 +9,7 @@ class Survey extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['title', 'description', 'short_description', 'slug'];
+    protected $fillable = ['title', 'short_description', 'description', 'slug', 'price'];
 
     public function questions()
     {
