@@ -9,7 +9,7 @@ class Survey extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['title', 'description'];
+    protected $fillable = ['title', 'description', 'short_description', 'slug'];
 
     public function questions()
     {
@@ -20,4 +20,22 @@ class Survey extends Model
     {
         return $this->hasMany(Result::class);
     }
+
+    public function categories()
+    {
+        return $this->belongsToMany(Category::class);
+    }
+
+    // Automatically generate a slug from the title if not provided
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::creating(function ($survey) {
+            if (empty($survey->slug)) {
+                $survey->slug = Str::slug($survey->title);
+            }
+        });
+    }
 }
+

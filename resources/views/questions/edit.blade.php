@@ -11,15 +11,16 @@
             @endif
 
             <div class="card">
-                <div class="card-header">Add Question to Survey: {{ $survey->title }}</div>
+                <div class="card-header">Edit Question</div>
 
                 <div class="card-body">
-                    <form method="POST" action="{{ route('surveys.questions.store', $survey->slug) }}">
+                    <form method="POST" action="{{ route('questions.update', $question->id) }}">
                         @csrf
+                        @method('PUT')
 
                         <div class="form-group">
                             <label for="text">Question Text</label>
-                            <input id="text" type="text" class="form-control @error('text') is-invalid @enderror" name="text" value="{{ old('text') }}" required autofocus>
+                            <input id="text" type="text" class="form-control @error('text') is-invalid @enderror" name="text" value="{{ old('text', $question->text) }}" required autofocus>
 
                             @error('text')
                                 <span class="invalid-feedback" role="alert">
@@ -33,7 +34,7 @@
                             <select id="option_type_id" class="form-control @error('option_type_id') is-invalid @enderror" name="option_type_id" required>
                                 <option value="">Select Option Type</option>
                                 @foreach ($optionTypes as $optionType)
-                                    <option value="{{ $optionType->id }}">{{ $optionType->name }}</option>
+                                    <option value="{{ $optionType->id }}" {{ $optionType->id == $question->option_type_id ? 'selected' : '' }}>{{ $optionType->name }}</option>
                                 @endforeach
                             </select>
 
@@ -44,7 +45,8 @@
                             @enderror
                         </div>
 
-                        <button type="submit" class="btn btn-primary">Add Question</button>
+                        <button type="submit" class="btn btn-primary">Update Question</button>
+                        <a href="{{ route('surveys.show', $question->survey->slug) }}" class="btn btn-secondary">Back</a>
                     </form>
                 </div>
             </div>

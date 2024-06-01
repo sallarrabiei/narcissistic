@@ -19,7 +19,8 @@
                     <ul class="list-group">
                         @foreach ($surveys as $survey)
                             <li class="list-group-item">
-                                <a href="{{ route('surveys.show', $survey) }}">{{ $survey->title }}</a>
+                                <a href="{{ route('surveys.show', $survey->slug) }}">{{ $survey->title }}</a>
+                                <p>{{ $survey->short_description }}</p>
                             </li>
                         @endforeach
                     </ul>

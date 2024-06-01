@@ -4,16 +4,23 @@
 <div class="container">
     <div class="row justify-content-center">
         <div class="col-md-8">
+            @if (session('success'))
+                <div class="alert alert-success">
+                    {{ session('success') }}
+                </div>
+            @endif
+
             <div class="card">
-                <div class="card-header">Create Survey</div>
+                <div class="card-header">Edit Survey</div>
 
                 <div class="card-body">
-                    <form method="POST" action="{{ route('surveys.store') }}">
+                    <form method="POST" action="{{ route('surveys.update', $survey->slug) }}">
                         @csrf
+                        @method('PUT')
 
                         <div class="form-group">
                             <label for="title">Title</label>
-                            <input id="title" type="text" class="form-control @error('title') is-invalid @enderror" name="title" value="{{ old('title') }}" required autofocus>
+                            <input id="title" type="text" class="form-control @error('title') is-invalid @enderror" name="title" value="{{ old('title', $survey->title) }}" required autofocus>
 
                             @error('title')
                                 <span class="invalid-feedback" role="alert">
@@ -24,7 +31,7 @@
 
                         <div class="form-group">
                             <label for="short_description">Short Description</label>
-                            <input id="short_description" type="text" class="form-control @error('short_description') is-invalid @enderror" name="short_description" value="{{ old('short_description') }}" required>
+                            <input id="short_description" type="text" class="form-control @error('short_description') is-invalid @enderror" name="short_description" value="{{ old('short_description', $survey->short_description) }}" required>
 
                             @error('short_description')
                                 <span class="invalid-feedback" role="alert">
@@ -35,7 +42,7 @@
 
                         <div class="form-group">
                             <label for="description">Description</label>
-                            <textarea id="description" class="form-control @error('description') is-invalid @enderror" name="description">{{ old('description') }}</textarea>
+                            <textarea id="description" class="form-control @error('description') is-invalid @enderror" name="description">{{ old('description', $survey->description) }}"></textarea>
 
                             @error('description')
                                 <span class="invalid-feedback" role="alert">
@@ -48,7 +55,7 @@
                             <label for="categories">Categories</label>
                             @foreach ($categories as $category)
                                 <div class="form-check">
-                                    <input class="form-check-input" type="checkbox" name="categories[]" value="{{ $category->id }}" id="category{{ $category->id }}">
+                                    <input class="form-check-input" type="checkbox" name="categories[]" value="{{ $category->id }}" id="category{{ $category->id }}" {{ in_array($category->id, $survey->categories->pluck('id')->toArray()) ? 'checked' : '' }}>
                                     <label class="form-check-label" for="category{{ $category->id }}">
                                         {{ $category->name }}
                                     </label>
@@ -58,7 +65,7 @@
 
                         <div class="form-group">
                             <label for="slug">Slug</label>
-                            <input id="slug" type="text" class="form-control @error('slug') is-invalid @enderror" name="slug" value="{{ old('slug') }}">
+                            <input id="slug" type="text" class="form-control @error('slug') is-invalid @enderror" name="slug" value="{{ old('slug', $survey->slug) }}" required>
 
                             @error('slug')
                                 <span class="invalid-feedback" role="alert">
@@ -67,7 +74,7 @@
                             @enderror
                         </div>
 
-                        <button type="submit" class="btn btn-primary">Create Survey</button>
+                        <button type="submit" class="btn btn-primary">Update Survey</button>
                     </form>
                 </div>
             </div>

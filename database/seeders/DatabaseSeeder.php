@@ -13,6 +13,9 @@ class DatabaseSeeder extends Seeder
      */
     public function run()
     {
-        // \App\Models\User::factory(10)->create();
+        $this->call([
+            UsersTableSeeder::class,
+            OptionTypesTableSeeder::class, // Ensure this is also called to seed the option types
+        ]);
     }
 }

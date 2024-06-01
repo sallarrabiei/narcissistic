@@ -9,7 +9,7 @@ class Question extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['survey_id', 'text'];
+    protected $fillable = ['survey_id', 'text', 'option_type_id'];
 
     public function survey()
     {
@@ -21,8 +21,15 @@ class Question extends Model
         return $this->hasMany(Option::class);
     }
 
+    public function optionType()
+    {
+        return $this->belongsTo(OptionType::class);
+    }
+
     public function responses()
     {
         return $this->hasMany(Response::class);
     }
 }
+
+

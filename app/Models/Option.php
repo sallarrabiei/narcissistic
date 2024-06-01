@@ -9,11 +9,16 @@ class Option extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['question_id', 'label', 'value'];
+    protected $fillable = ['question_id', 'option_type_id', 'label', 'value'];
 
     public function question()
     {
         return $this->belongsTo(Question::class);
+    }
+
+    public function optionType()
+    {
+        return $this->belongsTo(OptionType::class);
     }
 
     public function responses()
@@ -21,3 +26,4 @@ class Option extends Model
         return $this->hasMany(Response::class);
     }
 }
+
