@@ -42,13 +42,18 @@
 
                         <div class="form-group">
                             <label for="description">Description</label>
-                            <textarea id="description" class="form-control @error('description') is-invalid @enderror" name="description">{{ old('description', $survey->description) }}"></textarea>
+                            <textarea id="description" class="form-control @error('description') is-invalid @enderror" name="description">{{ old('description', $survey->description) }}</textarea>
 
                             @error('description')
                                 <span class="invalid-feedback" role="alert">
                                     <strong>{{ $message }}</strong>
                                 </span>
                             @enderror
+                        </div>
+
+                        <div class="form-group">
+                            <label for="meta_description">Meta Description</label>
+                            <textarea name="meta_description" class="form-control">{{ $survey->meta_description }}</textarea>
                         </div>
 
                         <div class="form-group">
@@ -84,9 +89,29 @@
                             @enderror
                         </div>
 
+                        <div class="form-group">
+                            <label for="analysis_text">Survey Analysis Text</label>
+                            <textarea name="analysis_text" class="form-control text-editor">{{ $survey->analysis_text }}</textarea>
+                        </div>
+
+                        <div id="conditions-container">
+                            <h5>Analysis Conditions</h5>
+                            @if(is_array($survey->analysis_conditions))
+                                @foreach($survey->analysis_conditions as $index => $condition)
+                                    <div class="form-group">
+                                        <label>Score Range</label>
+                                        <input type="number" name="conditions[{{ $index }}][min]" class="form-control" value="{{ $condition['min'] }}" placeholder="Min">
+                                        <input type="number" name="conditions[{{ $index }}][max]" class="form-control" value="{{ $condition['max'] }}" placeholder="Max">
+                                        <textarea name="conditions[{{ $index }}][text]" class="form-control" placeholder="Text for this range">{{ $condition['text'] }}</textarea>
+                                    </div>
+                                @endforeach
+                            @endif
+                        </div>
+                        <button type="button" id="add-condition" class="btn btn-secondary">Add Condition</button>
+
                         <button type="submit" class="btn btn-primary">Update Survey</button>
                         <a href="{{ route('surveys.index') }}" class="btn btn-secondary">Back</a>
-                        <a href="{{ route('surveys.public.show', $survey->slug) }}" class="btn btn-info" target="_blank">View Survey</a>
+                        <a href="{{ route('surveys.public.start', $survey->slug) }}" class="btn btn-info" target="_blank">View Survey</a>
 
                     </form>
                 </div>
@@ -99,5 +124,22 @@
 <script src="https://cdn.ckeditor.com/4.16.2/standard/ckeditor.js"></script>
 <script>
     CKEDITOR.replace('description');
+    CKEDITOR.replace('analysis_text');
+
 </script>
+<script>
+    document.getElementById('add-condition').addEventListener('click', function() {
+        var container = document.getElementById('conditions-container');
+        var index = container.children.length;
+        var div = document.createElement('div');
+        div.classList.add('form-group');
+        div.innerHTML = `
+            <label>Score Range</label>
+            <input type="number" name="conditions[${index}][min]" class="form-control" placeholder="Min">
+            <input type="number" name="conditions[${index}][max]" class="form-control" placeholder="Max">
+            <textarea name="conditions[${index}][text]" class="form-control" placeholder="Text for this range"></textarea>
+        `;
+        container.appendChild(div);
+    });
+    </script>
 @endsection

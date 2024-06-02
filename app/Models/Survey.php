@@ -9,8 +9,10 @@ class Survey extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['title', 'short_description', 'description', 'slug', 'price'];
-
+    protected $fillable = ['title', 'short_description', 'description', 'slug', 'price', 'analysis_text', 'analysis_conditions', 'meta_description'];
+    protected $casts = [
+        'analysis_conditions' => 'array',
+    ];
     public function questions()
     {
         return $this->hasMany(Question::class);

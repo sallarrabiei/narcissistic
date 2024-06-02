@@ -45,6 +45,11 @@
                         </div>
 
                         <div class="form-group">
+                            <label for="meta_description">Meta Description</label>
+                            <textarea name="meta_description" class="form-control"></textarea>
+                        </div>
+
+                        <div class="form-group">
                             <label for="categories">Categories</label>
                             @foreach ($categories as $category)
                                 <div class="form-check">
@@ -77,6 +82,22 @@
                             @enderror
                         </div>
 
+                        <div class="form-group">
+                            <label for="analysis_text">Survey Analysis Text</label>
+                            <textarea name="analysis_text" class="form-control text-editor"></textarea>
+                        </div>
+
+                        <div id="conditions-container">
+                            <h5>Analysis Conditions</h5>
+                            <div class="form-group">
+                                <label>Score Range</label>
+                                <input type="number" name="conditions[0][min]" class="form-control" placeholder="Min">
+                                <input type="number" name="conditions[0][max]" class="form-control" placeholder="Max">
+                                <textarea name="conditions[0][text]" class="form-control" placeholder="Text for this range"></textarea>
+                            </div>
+                        </div>
+                        <button type="button" id="add-condition" class="btn btn-secondary">Add Condition</button>
+
                         <button type="submit" class="btn btn-primary">Create Survey</button>
                     </form>
                 </div>
@@ -89,5 +110,22 @@
 <script src="https://cdn.ckeditor.com/4.16.2/standard/ckeditor.js"></script>
 <script>
     CKEDITOR.replace('description');
+    CKEDITOR.replace('analysis_text');
+
 </script>
+<script>
+    document.getElementById('add-condition').addEventListener('click', function() {
+        var container = document.getElementById('conditions-container');
+        var index = container.children.length;
+        var div = document.createElement('div');
+        div.classList.add('form-group');
+        div.innerHTML = `
+            <label>Score Range</label>
+            <input type="number" name="conditions[${index}][min]" class="form-control" placeholder="Min">
+            <input type="number" name="conditions[${index}][max]" class="form-control" placeholder="Max">
+            <textarea name="conditions[${index}][text]" class="form-control" placeholder="Text for this range"></textarea>
+        `;
+        container.appendChild(div);
+    });
+    </script>
 @endsection

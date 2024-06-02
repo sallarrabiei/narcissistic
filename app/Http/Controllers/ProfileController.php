@@ -11,10 +11,10 @@ class ProfileController extends Controller
     public function edit()
     {
         $user = Auth::user();
-        $results = Result::where('user_id', $user->id)->with('survey')->get();
-        return view('profile.edit', compact('user', 'results'));
+        //$results = Result::where('user_id', $user->id)->with('survey')->get();
+        //return view('profile.edit', compact('user', 'results'));
 
-        // return view('profile.edit', ['user' => Auth::user()]);
+        return view('profile.edit', ['user' => Auth::user()]);
     }
 
     public function update(Request $request)

@@ -73,19 +73,6 @@
                 </div>
             </div>
 
-            <div class="card mt-4">
-                <div class="card-header">Survey Results</div>
-
-                <div class="card-body">
-                    <ul class="list-group">
-                        @foreach ($results as $result)
-                            <li class="list-group-item">
-                                <strong>{{ $result->survey->title }}</strong>: {{ $result->score }}
-                            </li>
-                        @endforeach
-                    </ul>
-                </div>
-            </div>
         </div>
     </div>
 </div>

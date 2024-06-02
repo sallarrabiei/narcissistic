@@ -9,6 +9,7 @@ use App\Models\Option;
 use App\Models\OptionType;
 use App\Models\Category;
 use Illuminate\Support\Str;
+use App\Models\SurveyResult;
 use Illuminate\Support\Facades\Auth;
 
 class SurveyController extends Controller
@@ -27,26 +28,12 @@ class SurveyController extends Controller
 
     public function store(Request $request)
     {
-        $request->validate([
-            'title' => 'required|string|max:255',
-            'description' => 'nullable|string',
-            'short_description' => 'nullable|string|max:255',
-            'slug' => 'nullable|string|unique:surveys,slug',
-            'categories' => 'array',
-            'categories.*' => 'exists:categories,id',
-            'price' => 'nullable|numeric',
-
-        ]);
-
         $data = $request->all();
-        if (empty($data['slug'])) {
-            $data['slug'] = Str::slug($data['title']);
-        }
-
+        $data['analysis_conditions'] = isset($data['conditions']) ? json_encode($data['conditions']) : json_encode([]);
         $survey = Survey::create($data);
         $survey->categories()->sync($request->categories);
 
-        return redirect()->route('surveys.index')->with('success', 'Survey created successfully.');
+        return redirect()->route('surveys.index')->with('success', 'Survey created successfully');
     }
 
     public function show(Survey $survey)
@@ -61,34 +48,23 @@ class SurveyController extends Controller
         return view('surveys.show', compact('survey'));
     }
 
-    public function edit(Survey $survey)
+    public function edit($slug)
     {
+        $survey = Survey::where('slug', $slug)->firstOrFail();
+        $survey->analysis_conditions = json_decode($survey->analysis_conditions, true);
         $categories = Category::all();
         return view('surveys.edit', compact('survey', 'categories'));
     }
 
-    public function update(Request $request, Survey $survey)
+    public function update(Request $request, $slug)
     {
-        $request->validate([
-            'title' => 'required|string|max:255',
-            'description' => 'nullable|string',
-            'short_description' => 'nullable|string|max:255',
-            'slug' => 'required|string|unique:surveys,slug,' . $survey->id,
-            'categories' => 'array',
-            'categories.*' => 'exists:categories,id',
-            'price' => 'nullable|numeric',
-
-        ]);
-
+        $survey = Survey::where('slug', $slug)->firstOrFail();
         $data = $request->all();
-        if (empty($data['slug'])) {
-            $data['slug'] = Str::slug($data['title']);
-        }
-
+        $data['analysis_conditions'] = isset($data['conditions']) ? json_encode($data['conditions']) : json_encode([]);
         $survey->update($data);
         $survey->categories()->sync($request->categories);
 
-        return redirect()->route('surveys.show', $survey)->with('success', 'Survey updated successfully.');
+        return redirect()->route('surveys.edit', $survey->slug)->with('success', 'Survey updated successfully');
     }
 
     public function destroy(Survey $survey)
@@ -188,46 +164,61 @@ class SurveyController extends Controller
     public function showQuestion(Request $request, $slug)
     {
         $survey = Survey::where('slug', $slug)->firstOrFail();
-        $questionId = $request->input('question_id');
-        $questionIndex = $request->input('question_index');
-        $direction = $request->input('direction');
-
         $questions = $survey->questions()->get();
-        $currentIndex = $questions->search(function ($question) use ($questionId) {
-            return $question->id == $questionId;
-        });
 
-        if ($direction == 'start') {
+        $currentIndex = $request->get('index', 0);
+        if ($currentIndex < 0 || $currentIndex >= count($questions)) {
             $currentIndex = 0;
-        } else if ($direction == 'next') {
-            $currentIndex++;
-        } else if ($direction == 'prev') {
-            $currentIndex--;
-        }
-
-        if ($currentIndex < 0) {
-            $currentIndex = 0;
-        } else if ($currentIndex >= count($questions)) {
-            $currentIndex = count($questions) - 1;
         }
 
         $currentQuestion = $questions[$currentIndex];
-        return view('surveys.public_show', compact('survey', 'currentQuestion', 'currentIndex'));
+        $responses = $request->input('responses', []);
+
+        return view('surveys.public_questions', compact('survey', 'currentQuestion', 'currentIndex', 'responses'));
     }
 
     public function submitSurvey(Request $request, $slug)
     {
         $survey = Survey::where('slug', $slug)->firstOrFail();
+        $questions = $survey->questions()->get();
         $responses = $request->input('responses', []);
 
         $score = 0;
-        foreach ($responses as $questionId => $value) {
-            $score += (int) $value;
+        foreach ($questions as $question) {
+            if (isset($responses[$question->id])) {
+                $score += (int) $responses[$question->id];
+            }
         }
 
-        // Save the result to the database if needed
-        // Example: SurveyResult::create([...]);
+        // Save the result to the database
+        SurveyResult::create([
+            'user_id' => Auth::id(),
+            'survey_id' => $survey->id,
+            'responses' => $responses,
+            'score' => $score,
+        ]);
 
-        return view('surveys.public_result', compact('survey', 'score'));
+        // Calculate average score and total participants
+        $results = SurveyResult::where('survey_id', $survey->id)->get();
+        $averageScore = $results->avg('score');
+        $totalParticipants = $results->count();
+
+        // Decode analysis conditions
+        $analysisConditions = json_decode($survey->analysis_conditions, true);
+
+        return view('surveys.public_result', compact('survey', 'score', 'averageScore', 'totalParticipants', 'analysisConditions'));
     }
+
+    public function showAnalysis($slug)
+    {
+        $survey = Survey::where('slug', $slug)->firstOrFail();
+        $results = SurveyResult::where('survey_id', $survey->id)->get();
+
+        $averageScore = $results->avg('score');
+        $totalParticipants = $results->count();
+
+        return view('surveys.analysis', compact('survey', 'averageScore', 'totalParticipants'));
+    }
+
+
 }

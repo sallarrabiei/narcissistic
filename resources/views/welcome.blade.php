@@ -1,98 +1,36 @@
-<!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
-    <head>
-        <meta charset="utf-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1">
+@extends('layouts.app')
 
-        <title>{{ config('app.name', 'Laravel') }}</title>
+@section('content')
+<div class="pricing-header p-3 pb-md-4 mx-auto mt-5 text-center">
+    <h1 class="display-4 fw-normal text-body-emphasis fw-bold mb-5">خودشیفتگی</h1>
+    <p class="fs-5 text-body-secondary mt-2">
+        با ارائه تست‌های روانشناسی معتبر و علمی به شما کمک می‌کنیم تا میزان خودشیفتگی خود را به صورت دقیق و بدون هیچگونه قضاوت یا ناراحتی ارزیابی کنید. هدف ما این است که به شما در شناخت بهتر خود و بهبود روابط بین فردی‌تان کمک کنیم. همه ارزیابی‌ها با احترام کامل به حریم خصوصی شما انجام می‌شود تا تجربه‌ای مثبت و آموزنده داشته باشید.
+    </p>
+    <p class="fs-5 text-body-secondary">
+        برای شرکت در تست‌های روانشناسی وبسایت خودشیفتگی، لطفاً ابتدا در سایت ثبت‌نام کنید. در فرآیند ثبت‌نام، تنها آدرس ایمیل و نام شما دریافت می‌شود، نام خانوادگی اختیاری می‌باشد. ما به هیچ اطلاعات اضافی نیاز نداریم و از این اطلاعات نیز صرفاً برای ارسال هدایای عضویت و ارتباطات ضروری از جمله اعلام اسامی برنده‌ قرعه‌کشی استفاده خواهیم کرد. این اطمینان را به شما می‌دهیم که حریم خصوصی شما کاملاً محترم شمرده خواهد شد.
+    </p>
+</div>
+<!--tests -->
+<div class="row row-cols-1 row-cols-md-3 mb-3 text-center border-top pt-3">
+    @foreach ($surveys as $survey)
+        <div class="col">
+            <div class="card mb-4 rounded-3 shadow-sm">
 
-        <!-- Fonts -->
-        <link href="https://fonts.googleapis.com/css?family=Nunito:200,600" rel="stylesheet">
-
-        <!-- Styles -->
-        <style>
-            html, body {
-                background-color: #fff;
-                color: #636b6f;
-                font-family: 'Nunito', sans-serif;
-                font-weight: 200;
-                height: 100vh;
-                margin: 0;
-            }
-
-            .full-height {
-                height: 100vh;
-            }
-
-            .flex-center {
-                align-items: center;
-                display: flex;
-                justify-content: center;
-            }
-
-            .position-ref {
-                position: relative;
-            }
-
-            .top-right {
-                position: absolute;
-                right: 10px;
-                top: 18px;
-            }
-
-            .content {
-                text-align: center;
-            }
-
-            .title {
-                font-size: 84px;
-            }
-
-            .links > a {
-                color: #636b6f;
-                padding: 0 25px;
-                font-size: 13px;
-                font-weight: 600;
-                letter-spacing: .1rem;
-                text-decoration: none;
-                text-transform: uppercase;
-            }
-
-            .m-b-md {
-                margin-bottom: 30px;
-            }
-        </style>
-    </head>
-    <body>
-        <div class="flex-center position-ref full-height">
-            @if (Route::has('login'))
-                <div class="top-right links">
-                    @auth
-                        <a href="{{ url('/home') }}">Home</a>
-                    @else
-                        <a href="{{ route('login') }}">Login</a>
-
-                        @if (Route::has('register'))
-                            <a href="{{ route('register') }}">Register</a>
-                        @endif
-                    @endauth
-                </div>
-            @endif
-
-            <div class="content">
-                <div class="title m-b-md">
-                    {{ config('app.name', 'Laravel') }}
+                <div class="card-header py-3">
+                    <h4 class="my-0 fw-normal fs-5">{{ $survey->price == 0 ? 'شرکت در این آزمون رایگان است.' : 'تومان' . $survey->price }}</h4>
                 </div>
 
-                <div class="links">
-                    @foreach ($surveys as $survey)
-                        <div class="card" style="margin-bottom: 20px; padding: 20px; text-align: left;">
-                            <h2>{{ $survey->title }}</h2>
-                            <p>{{ $survey->short_description }}</p>
-                        </div>
-                    @endforeach
+                <div class="card-body">
+                    <h2 class="card-title pricing-card-title">{{ $survey->title }}</h2>
+                    <p>{{ $survey->short_description }}</p>
+                    <a href="{{ route('surveys.public.start', $survey->slug) }}" class="w-100 btn btn-lg btn-outline-dark">
+                        شرکت در آزمون
+                    </a>
                 </div>
             </div>
         </div>
-    </body>
-</html>
+    @endforeach
+
+</div>
+
+@endsection

@@ -12,6 +12,8 @@ use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\PageController;
 use App\Http\Controllers\CommentController;
 use App\Http\Controllers\PaymentController;
+use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\Auth\LoginController;
 
 /*
 |--------------------------------------------------------------------------
@@ -23,14 +25,35 @@ use App\Http\Controllers\PaymentController;
 | contains the "web" middleware group. Now create something great!
 |
 */
+
+Auth::routes();
+
+Route::get('/surveys/{slug}', [SurveyController::class, 'startSurvey'])->name('surveys.public.start');
+
+
 Route::get('/', [HomeController::class, 'index'])->name('home');
 
 // Route::get('/', function () {
 //     return view('welcome');
 // });
 
+// Auth routes
+Route::get('login', [LoginController::class, 'showLoginForm'])->name('login');
+Route::post('login', [LoginController::class, 'login']);
+
+
 Route::middleware(['auth'])->group(function () {
     Route::get('/dashboard', [UserController::class, 'index'])->name('dashboard');
+
+    Route::get('/surveys/{slug}/questions', [SurveyController::class, 'showQuestion'])->name('surveys.public.question');
+    Route::post('/surveys/{slug}/submit', [SurveyController::class, 'submitSurvey'])->name('surveys.submit');
+
+    // Route::get('/surveys/{slug}', [SurveyController::class, 'startSurvey'])->name('surveys.public.start');
+    //  Route::post('/surveys/{slug}/question', [SurveyController::class, 'showQuestion'])->name('surveys.public.question');
+    // Route::post('/surveys/{slug}/submit', [SurveyController::class, 'submitSurvey'])->name('surveys.submit');
+
+    // User dashboard routes
+    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
     Route::middleware(['checkUserType:2'])->group(function () {
         Route::get('/admin', [AdminController::class, 'index'])->name('admin');
@@ -99,11 +122,10 @@ Route::get('/payment/paypal/cancel', function() {
 })->name('paypal.cancel');
 
 // Public route to view a survey
-Route::get('/surveys/{slug}', [SurveyController::class, 'startSurvey'])->name('surveys.public.start');
-Route::post('/surveys/{slug}/question', [SurveyController::class, 'showQuestion'])->name('surveys.public.question');
-Route::post('/surveys/{slug}/submit', [SurveyController::class, 'submitSurvey'])->name('surveys.submit');
+// Route::get('/surveys/{slug}', [SurveyController::class, 'startSurvey'])->name('surveys.public.start');
+// Route::post('/surveys/{slug}/question', [SurveyController::class, 'showQuestion'])->name('surveys.public.question');
+// Route::post('/surveys/{slug}/submit', [SurveyController::class, 'submitSurvey'])->name('surveys.submit');
 
 
-Auth::routes();
 
 Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
