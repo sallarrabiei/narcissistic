@@ -12,6 +12,7 @@ class DatabaseSeeder extends Seeder
             UsersTableSeeder::class,
             OptionTypesTableSeeder::class,
             CategoriesTableSeeder::class,
+            OptionSeeder::class,
 
         ]);
     }

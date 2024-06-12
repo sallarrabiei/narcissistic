@@ -6,22 +6,21 @@ use Illuminate\Support\Facades\Schema;
 
 class AddSlugToSurveysTable extends Migration
 {
-    /**
-     * Run the migrations.
-     *
-     * @return void
-     */
     public function up()
     {
         Schema::table('surveys', function (Blueprint $table) {
-            $table->string('slug')->unique()->after('title');
+            if (!Schema::hasColumn('surveys', 'slug')) {
+                $table->string('slug')->unique()->after('title');
+            }
         });
     }
 
     public function down()
     {
         Schema::table('surveys', function (Blueprint $table) {
-            $table->dropColumn('slug');
+            if (Schema::hasColumn('surveys', 'slug')) {
+                $table->dropColumn('slug');
+            }
         });
     }
 }

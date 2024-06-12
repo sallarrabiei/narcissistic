@@ -14,6 +14,8 @@ use App\Http\Controllers\CommentController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\Auth\LoginController;
+use App\Http\Controllers\TagController;
+use App\Http\Controllers\GroupController;
 
 /*
 |--------------------------------------------------------------------------
@@ -45,12 +47,17 @@ Route::post('login', [LoginController::class, 'login']);
 Route::middleware(['auth'])->group(function () {
     Route::get('/dashboard', [UserController::class, 'index'])->name('dashboard');
 
-    Route::get('/surveys/{slug}/questions', [SurveyController::class, 'showQuestion'])->name('surveys.public.question');
-    Route::post('/surveys/{slug}/submit', [SurveyController::class, 'submitSurvey'])->name('surveys.submit');
+    //Route::get('/surveys/{survey:slug}/questions', [SurveyController::class, 'showQuestions'])->name('surveys.questions.show');
+    //Route::get('/surveys/{survey:slug}/questions', [SurveyController::class, 'showQuestions'])->name('surveys.questions.show');
+    //Route::post('/surveys/{survey:slug}/submit', [SurveyController::class, 'submit'])->name('surveys.submit');
+
+    Route::get('/surveys/{survey:slug}/questions', [SurveyController::class, 'showQuestion'])->name('surveys.public.question');
+    Route::post('/surveys/{survey:slug}/submit', [SurveyController::class, 'submitSurvey'])->name('surveys.submit');
 
     // Route::get('/surveys/{slug}', [SurveyController::class, 'startSurvey'])->name('surveys.public.start');
-    //  Route::post('/surveys/{slug}/question', [SurveyController::class, 'showQuestion'])->name('surveys.public.question');
-    // Route::post('/surveys/{slug}/submit', [SurveyController::class, 'submitSurvey'])->name('surveys.submit');
+
+    //Route::post('/surveys/{slug}/question', [SurveyController::class, 'showQuestion'])->name('surveys.public.question');
+    //Route::post('/surveys/{slug}/submit', [SurveyController::class, 'submitSurvey'])->name('surveys.submit');
 
     // User dashboard routes
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
@@ -62,21 +69,55 @@ Route::middleware(['auth'])->group(function () {
     Route::middleware(['checkUserType:1'])->group(function () {
         Route::get('/superadmin/surveys', [SurveyController::class, 'index'])->name('surveys.index');
         Route::get('/superadmin/surveys/create', [SurveyController::class, 'create'])->name('surveys.create');
+
+
         Route::post('/superadmin/surveys', [SurveyController::class, 'store'])->name('surveys.store');
         Route::get('/superadmin/surveys/{survey:slug}', [SurveyController::class, 'show'])->name('surveys.show');
+
+
         Route::get('/superadmin/surveys/{survey:slug}/edit', [SurveyController::class, 'edit'])->name('surveys.edit');
         Route::put('/superadmin/surveys/{survey:slug}', [SurveyController::class, 'update'])->name('surveys.update');
         Route::delete('/superadmin/surveys/{survey:slug}', [SurveyController::class, 'destroy'])->name('surveys.destroy');
-        Route::get('/superadmin/surveys/{survey:slug}/questions/create', [SurveyController::class, 'createQuestion'])->name('surveys.questions.create');
-        Route::post('/superadmin/surveys/{survey:slug}/questions', [SurveyController::class, 'storeQuestion'])->name('surveys.questions.store');
 
 
-        // Routes for editing and deleting questions
-        Route::get('/superadmin/questions/{question}/edit', [QuestionController::class, 'edit'])->name('questions.edit');
-        Route::put('/superadmin/questions/{question}', [QuestionController::class, 'update'])->name('questions.update');
-        Route::delete('/superadmin/questions/{question}', [QuestionController::class, 'destroy'])->name('questions.destroy');
+        // Routes for questions
+        //Route::get('/superadmin/surveys/{survey:slug}/questions/create', [SurveyController::class, 'createQuestion'])->name('surveys.questions.create');
+        // Route::get('/superadmin/surveys/{survey:slug}/questions/create', [SurveyController::class, 'createQuestion'])->name('surveys.questions.create');
+        //Route::post('/superadmin/surveys/{survey:slug}/questions', [SurveyController::class, 'storeQuestion'])->name('surveys.questions.store');
+        // Route::post('/superadmin/surveys/{survey:slug}/questions', [SurveyController::class, 'storeQuestion'])->name('surveys.questions.store');
+
+        Route::get('/superadmin/surveys/{survey}/questions/create', [SurveyController::class, 'createQuestion'])->name('surveys.questions.create');
+        Route::post('/superadmin/surveys/{survey}/questions', [SurveyController::class, 'storeQuestion'])->name('surveys.questions.store');
 
 
+        Route::get('/superadmin/surveys/{survey:slug}/questions/{question}/edit', [SurveyController::class, 'editQuestion'])->name('surveys.questions.edit');
+        Route::put('/superadmin/surveys/{survey:slug}/questions/{question}', [SurveyController::class, 'updateQuestion'])->name('surveys.questions.update');
+
+        //Route::get('/superadmin/surveys/{survey:slug}/questions/{question}/edit', [QuestionController::class, 'edit'])->name('questions.edit');
+        //Route::put('/superadmin/surveys/{survey:slug}/questions/{question}', [QuestionController::class, 'update'])->name('questions.update');
+        Route::delete('/superadmin/surveys/{survey:slug}/questions/{question}', [QuestionController::class, 'destroy'])->name('questions.destroy');
+
+        // Routes for Tags
+
+
+
+        Route::get('/tags/create', [TagController::class, 'create'])->name('tags.create');
+        Route::post('/tags', [TagController::class, 'store'])->name('tags.store');
+        Route::get('/tags', [TagController::class, 'index'])->name('tags.index');
+
+
+
+        Route::get('/superadmin/surveys/{survey}/groups', [GroupController::class, 'index'])->name('groups.index');
+        Route::get('/superadmin/surveys/{survey}/groups/create', [GroupController::class, 'create'])->name('groups.create');
+        Route::post('/superadmin/surveys/{survey}/groups', [GroupController::class, 'store'])->name('groups.store');
+
+
+
+
+        // Route::get('/superadmin/surveys/{survey}/tags', [TagController::class, 'index'])->name('surveys.tags.index');
+        // Route::get('/superadmin/surveys/{survey}/tags/create', [TagController::class, 'create'])->name('surveys.tags.create');
+        // Route::post('/superadmin/surveys/{survey}/tags', [TagController::class, 'store'])->name('surveys.tags.store');
+        Route::delete('/superadmin/surveys/{survey}/tags/{tag}', [TagController::class, 'destroy'])->name('surveys.tags.destroy');
 
         // Routes for Categories
         Route::get('/superadmin/categories', [CategoryController::class, 'index'])->name('categories.index');

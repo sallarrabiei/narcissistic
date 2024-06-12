@@ -13,10 +13,7 @@ class Survey extends Model
     protected $casts = [
         'analysis_conditions' => 'array',
     ];
-    public function questions()
-    {
-        return $this->hasMany(Question::class);
-    }
+
 
     public function results()
     {
@@ -39,5 +36,29 @@ class Survey extends Model
             }
         });
     }
+    // public function tags()
+    // {
+    //     return $this->hasMany(Tag::class);
+    // }
+    public function getRouteKeyName()
+    {
+        return 'slug';
+    }
+
+    public function tags()
+    {
+        return $this->belongsToMany(Tag::class, 'survey_tag');
+    }
+
+    public function groups()
+    {
+        return $this->hasMany(Group::class);
+    }
+
+    public function questions()
+    {
+        return $this->hasMany(Question::class);
+    }
+
 }
 

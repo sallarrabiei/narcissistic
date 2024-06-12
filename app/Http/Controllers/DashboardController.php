@@ -10,7 +10,10 @@ class DashboardController extends Controller
 {
     public function index()
     {
-        $results = SurveyResult::where('user_id', Auth::id())->with('survey')->get();
+        $user = Auth::user();
+        $results = SurveyResult::where('user_id', $user->id)->get();
+
+        //$results = SurveyResult::where('user_id', Auth::id())->with('survey')->get();
         return view('dashboard.user', compact('results'));
     }
 }

@@ -6,8 +6,8 @@
 
     <!-- CSRF Token -->
     <meta name="csrf-token" content="{{ csrf_token() }}">
-
-    <title>{{ config('app.name', 'Laravel') }}</title>
+<style></style>
+    <title>{{ config('app.name', '') }}</title>
 
     <!-- Scripts -->
     <script src="{{ asset('js/app.js') }}" defer></script>
@@ -81,7 +81,7 @@
         </main>
     </div>
     <footer class="footer mt-auto py-3 bg-body-tertiary bg-light">
-        <div class="container">
+        <div class="container text-center">
           <span class="text-body-secondary text-center">تمام حقوق این وبسایت برای شرکت توسعه تجارت الکترونیک رسا محفوظ است.</span>
         </div>
     </footer>

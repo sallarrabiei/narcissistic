@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Survey;
+use App\Models\Response;
 use App\Models\Question;
 use App\Models\Option;
 use App\Models\OptionType;
@@ -11,6 +12,7 @@ use App\Models\Category;
 use Illuminate\Support\Str;
 use App\Models\SurveyResult;
 use Illuminate\Support\Facades\Auth;
+use App\Models\Tag;
 
 class SurveyController extends Controller
 {
@@ -34,6 +36,7 @@ class SurveyController extends Controller
         $survey->categories()->sync($request->categories);
 
         return redirect()->route('surveys.index')->with('success', 'Survey created successfully');
+
     }
 
     public function show(Survey $survey)
@@ -45,8 +48,19 @@ class SurveyController extends Controller
             }
         }
 
-        return view('surveys.show', compact('survey'));
+        // Fetch questions with options
+        $questions = $survey->questions()->with('options')->get();
+
+        // Debug statement to check loaded questions and options
+        // dd($questions);
+
+        return view('surveys.show', compact('survey', 'questions'));
     }
+//     public function showQuestions(Survey $survey)
+// {
+//     $questions = $survey->questions()->with('options')->get();
+//     return view('surveys.public_questions', compact('survey', 'questions'));
+// }
 
     public function edit($slug)
     {
@@ -76,26 +90,96 @@ class SurveyController extends Controller
     public function createQuestion(Survey $survey)
     {
         $optionTypes = OptionType::all();
-        return view('surveys.create_question', compact('survey', 'optionTypes'));
+        $groups = $survey->groups; // Get groups associated with the survey
+
+        return view('surveys.create_question', compact('survey', 'optionTypes', 'groups'));
     }
 
     public function storeQuestion(Request $request, Survey $survey)
+{
+    $request->validate([
+        'text' => 'required|string|max:255',
+        'option_type_id' => 'nullable|exists:option_types,id',
+        'options' => 'nullable|array',
+        'options.*.label' => 'required_with:options|string',
+        'options.*.value' => 'required_with:options|integer',
+        'group_id' => 'required|exists:groups,id', // Ensure group_id is validated
+    ]);
+
+    $question = new Question([
+        'text' => $request->text,
+        'survey_id' => $survey->id,
+        'option_type_id' => $request->option_type_id,
+        'group_id' => $request->group_id, // Set group_id
+    ]);
+    $question->save();
+
+    if ($request->has('options')) {
+        $options = $request->input('options', []);
+        foreach ($options as $option) {
+            Option::create([
+                'question_id' => $question->id,
+                'option_type_id' => $question->option_type_id,
+                'label' => $option['label'],
+                'value' => $option['value'],
+            ]);
+        }
+    }
+
+    return redirect()->route('surveys.show', $survey->slug)->with('success', 'Question created successfully.');
+}
+
+
+
+
+public function editQuestion(Survey $survey, $questionId)
+{
+    $question = Question::with('options')->findOrFail($questionId);
+    $optionTypes = OptionType::all();
+    $groups = $survey->groups; // Get groups associated with the survey
+
+    return view('surveys.edit_question', compact('survey', 'question', 'optionTypes', 'groups'));
+}
+
+
+    public function updateQuestion(Request $request, Survey $survey, $questionId)
     {
         $request->validate([
             'text' => 'required|string|max:255',
-            'option_type_id' => 'required|exists:option_types,id',
+            'option_type_id' => 'nullable|exists:option_types,id',
+            'options' => 'nullable|array',
+            'options.*.label' => 'required_with:options|string',
+            'options.*.value' => 'required_with:options|integer',
+            'group_id' => 'required|exists:groups,id', // Ensure group_id is validated
         ]);
 
-        $question = Question::create([
-            'survey_id' => $survey->id,
+        $question = Question::findOrFail($questionId);
+        $question->update([
             'text' => $request->text,
             'option_type_id' => $request->option_type_id,
+            'group_id' => $request->group_id, // Set group_id
         ]);
 
-        $this->addOptions($question);
+        // Handle options
+        $question->options()->delete(); // Delete existing options
+        if ($request->has('options')) {
+            $options = $request->input('options', []);
+            foreach ($options as $option) {
+                Option::create([
+                    'question_id' => $question->id,
+                    'option_type_id' => $question->option_type_id,
+                    'label' => $option['label'],
+                    'value' => $option['value'],
+                ]);
+            }
+        }
 
-        return redirect()->route('surveys.show', $survey)->with('success', 'Question added successfully.');
+        return redirect()->route('surveys.show', $survey->slug)->with('success', 'Question updated successfully.');
     }
+
+
+
+
 
     private function addOptions(Question $question)
     {
@@ -161,6 +245,7 @@ class SurveyController extends Controller
         return view('surveys.public_show', compact('survey'));
     }
 
+
     public function showQuestion(Request $request, $slug)
     {
         $survey = Survey::where('slug', $slug)->firstOrFail();
@@ -177,37 +262,38 @@ class SurveyController extends Controller
         return view('surveys.public_questions', compact('survey', 'currentQuestion', 'currentIndex', 'responses'));
     }
 
-    public function submitSurvey(Request $request, $slug)
-    {
-        $survey = Survey::where('slug', $slug)->firstOrFail();
-        $questions = $survey->questions()->get();
-        $responses = $request->input('responses', []);
 
-        $score = 0;
-        foreach ($questions as $question) {
-            if (isset($responses[$question->id])) {
-                $score += (int) $responses[$question->id];
-            }
-        }
+    // public function submitSurvey(Request $request, $slug)
+    // {
+    //     $survey = Survey::where('slug', $slug)->firstOrFail();
+    //     $questions = $survey->questions()->get();
+    //     $responses = $request->input('responses', []);
 
-        // Save the result to the database
-        SurveyResult::create([
-            'user_id' => Auth::id(),
-            'survey_id' => $survey->id,
-            'responses' => $responses,
-            'score' => $score,
-        ]);
+    //     $score = 0;
+    //     foreach ($questions as $question) {
+    //         if (isset($responses[$question->id])) {
+    //             $score += (int) $responses[$question->id];
+    //         }
+    //     }
 
-        // Calculate average score and total participants
-        $results = SurveyResult::where('survey_id', $survey->id)->get();
-        $averageScore = $results->avg('score');
-        $totalParticipants = $results->count();
+    //     // Save the result to the database
+    //     SurveyResult::create([
+    //         'user_id' => Auth::id(),
+    //         'survey_id' => $survey->id,
+    //         'responses' => $responses,
+    //         'score' => $score,
+    //     ]);
 
-        // Decode analysis conditions
-        $analysisConditions = json_decode($survey->analysis_conditions, true);
+    //     // Calculate average score and total participants
+    //     $results = SurveyResult::where('survey_id', $survey->id)->get();
+    //     $averageScore = $results->avg('score');
+    //     $totalParticipants = $results->count();
 
-        return view('surveys.public_result', compact('survey', 'score', 'averageScore', 'totalParticipants', 'analysisConditions'));
-    }
+    //     // Decode analysis conditions
+    //     $analysisConditions = json_decode($survey->analysis_conditions, true);
+
+    //     return view('surveys.public_result', compact('survey', 'score', 'averageScore', 'totalParticipants', 'analysisConditions'));
+    // }
 
     public function showAnalysis($slug)
     {
@@ -219,6 +305,67 @@ class SurveyController extends Controller
 
         return view('surveys.analysis', compact('survey', 'averageScore', 'totalParticipants'));
     }
+
+    public function calculateAverageScores(Survey $survey)
+    {
+        $tags = $survey->tags;
+        $averageScores = [];
+
+        foreach ($tags as $tag) {
+            $questions = $tag->questions()->where('survey_id', $survey->id)->get();
+            $totalScore = 0;
+            $responseCount = 0;
+
+            foreach ($questions as $question) {
+                $responses = $question->responses;
+                $responseCount += $responses->count();
+                $totalScore += $responses->sum('value');
+            }
+
+            if ($responseCount > 0) {
+                $averageScores[$tag->name] = $totalScore / $responseCount;
+
+            } else {
+                $averageScores[$tag->name] = 0;
+            }
+        }
+
+        return $averageScores;
+    }
+
+    // Handle survey submission
+    public function submitSurvey(Request $request, Survey $survey)
+{
+    $score = 0;
+    $responses = $request->input('responses', []);
+
+    // Calculate the score based on responses
+    foreach ($responses as $response) {
+        $score += $response;
+    }
+
+    // Retrieve the analysis text
+    $analysisText = $survey->analysis_text;
+
+    // Calculate average scores by group
+    $averageScores = [];
+    foreach ($survey->groups as $group) {
+        $groupQuestions = $group->questions;
+        $groupScoreSum = 0;
+        $groupQuestionCount = $groupQuestions->count();
+
+        if ($groupQuestionCount > 0) {
+            foreach ($groupQuestions as $question) {
+                $groupScoreSum += $responses[$question->id] ?? 0;
+            }
+            $averageScores[$group->name] = $groupScoreSum / $groupQuestionCount;
+            $averageScores[$group->name] = round($groupScoreSum / $groupQuestionCount, 1);
+
+        }
+    }
+
+    return view('surveys.public_result', compact('survey', 'score', 'analysisText', 'averageScores'));
+}
 
 
 }
